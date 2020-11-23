@@ -40,8 +40,8 @@ public class main {
 				switch (opcion) {
 				case 1:
 
-					System.out.println("Vuelos Disponibles");
 					ArrayList<Vuelo> AVuelos = MongoDB.mostrarMongo(mongo);
+					System.out.println("Vuelos Disponibles: ");
 					for (Vuelo i : AVuelos) {
 						System.out.println("Codigo Vuelo: " + i.getCodigo_vuelo() + ", ORIGEN: " + i.getOrigen()
 								+ ", Destino: " + i.getDestino() + ", Fecha: " + i.getFecha() + ", Hora: " + i.getHora()
@@ -49,18 +49,19 @@ public class main {
 								+ i.getPlazas_disponibles());
 					}
 					System.out.println();
-					System.out.println("Introduce el Codigo del vuelo que quiere comprar");
-					String codigoCompra = sc.next();
-					System.out.println("Introduzca su DNI");
+					System.out.println("Introduce el Codigo del vuelo que quiere comprar:");
+					String codigoCompra = sc.next().toUpperCase();
+					System.out.println("Introduzca su DNI: ");
 					String clienteDNI = sc.next();
-					System.out.println("Introduzca su nombre");
+					System.out.println("Introduzca su nombre: ");
 					String clienteNombre = sc.next();
-					System.out.println("Introduzca su apellido");
+					System.out.println("Introduzca su apellido: ");
 					String clienteApellido = sc.next();
-					System.out.println("Introduzca su DNI del pagador");
+					System.out.println("Introduzca su DNI del pagador: ");
 					String clienteDNIPagador = sc.next();
-					System.out.println("Introduzca la tarjeta de credito del pago a efectuar");
-					String clienteTarjeta = sc.next();
+					System.out.println("Introduzca la tarjeta de credito del pago a efectuar: ");
+					sc.nextLine();
+					String clienteTarjeta = sc.nextLine();
 					String codigoVenta = MongoDB.randomCodigoVenta();
 					System.out.println("Su Codigo de Venta es: " + codigoVenta + "\r\n");
 					MongoDB.insertarVendidos(mongo, codigoCompra, clienteDNI, clienteApellido, clienteNombre, clienteDNIPagador, clienteTarjeta, codigoVenta);

@@ -36,22 +36,26 @@ public class MenuMongoDB {
 		return mongo;
 	}
 
-	public int lastID(MongoClient mongo) {
+	public int lastID(MongoClient mongo, String codigoCompra) {
+		try {
+			MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
+			MongoCollection collection = db.getCollection("vuelos2_0");
+			BasicDBObject whereQuery = new BasicDBObject();
+			whereQuery.put("codigo", codigoCompra);
+			FindIterable fi = collection.find(whereQuery);
+			MongoCursor cursor = fi.cursor();
+			Document doc = (Document) cursor.next();
+			ArrayList<Document> vendidos = new ArrayList<Document>();
+			vendidos.addAll((ArrayList<Document>) doc.get("vendidos"));
 
-		MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
-		MongoCollection collection = db.getCollection("vuelos2_0");
-		FindIterable fi = collection.find();
-		MongoCursor cursor = fi.cursor();
-		Document doc = (Document) cursor.next();
-		ArrayList<Document> vendidos = new ArrayList<Document>();
-		vendidos.addAll((ArrayList<Document>) doc.get("vendidos"));
-
-		return vendidos.size();
+			return vendidos.size();
+		} catch (Exception e) {
+			return 0;
+		}
 	}
 
 	public ArrayList<Vuelo> mostrarMongo(MongoClient mongo) {
 		try {
-
 			MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
 			MongoCollection colleccionVuelos = db.getCollection("vuelos2_0");
 			FindIterable fi = colleccionVuelos.find();
@@ -77,14 +81,13 @@ public class MenuMongoDB {
 		}
 	}
 
-	public void insertarVendidos(MongoClient mongo, String codigoCompra, String clienteDNI, String clienteApellido,
-			String clienteNombre, String clienteDNIPagador, String clienteTarjeta, String codigoVenta) {
+	public void insertarVendidos(MongoClient mongo, String codigoCompra, String clienteDNI, String clienteApellido, String clienteNombre, String clienteDNIPagador, String clienteTarjeta, String codigoVenta) {
 		try {
 			MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
 			MongoCollection colleccionVuelos = db.getCollection("vuelos2_0");
 
 			Document quienCambio = new Document("codigo", codigoCompra);
-			int numAsientos = lastID(mongo);
+			int numAsientos = lastID(mongo, codigoCompra);
 			numAsientos++;
 			Document cambios = new Document().append("asiento", numAsientos).append("dni", clienteDNI)
 					.append("apellido", clienteApellido).append("nombre", clienteNombre)

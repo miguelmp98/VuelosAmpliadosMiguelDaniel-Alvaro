@@ -1,22 +1,28 @@
 package controlador;
 
-
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
+import java.util.Scanner;
 import org.bson.Document;
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Updates;
 
 import modelo.Vuelo;
 
 public class MenuMongoDB {
 	int lastID;
-	
+
 	public MenuMongoDB() {
-		
+
 	}
 
 	public MongoClient crearConexion() {
@@ -31,60 +37,86 @@ public class MenuMongoDB {
 	}
 
 	public int lastID(MongoClient mongo) {
-     
-        MongoDatabase db = mongo.getDatabase("adat_vuelos");
-        MongoCollection collecion = db.getCollection("vuelos");
-        FindIterable fi = collecion.find();
-        MongoCursor cursor = fi.cursor();
-        
-        lastID = 0;
-        
-        while (cursor.hasNext()) {
-            cursor.next();
-            lastID++;
-        }
-        lastID++;
-        return lastID;
-    }
 
-	public ArrayList<Vuelo> mostrarMongo() {
-		MongoClient mongo = crearConexion();
 		MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
-		MongoCollection colleccionVuelos = db.getCollection("vuelos2_0");
+		MongoCollection collection = db.getCollection("vuelos2_0");
+		FindIterable fi = collection.find();
+		MongoCursor cursor = fi.cursor();
+		Document doc = (Document) cursor.next();
+		ArrayList<Document> vendidos = new ArrayList<Document>();
+		vendidos.addAll((ArrayList<Document>) doc.get("vendidos"));
 
-		FindIterable fi = colleccionVuelos.find();
-		MongoCursor cur = fi.cursor();
-		ArrayList<Vuelo> AVuelos = new ArrayList<Vuelo>();
-		
-		while (cur.hasNext()) {
-			Document doc = (Document) cur.next();
-			int id = leerInt(doc, "id");
-			String codigo_vuelo = doc.getString("codigo");
-			String origen = doc.getString("origen");
-			String destino = doc.getString("destino");
-			String fecha = doc.getString("fecha");
-			String hora = doc.getString("hora");
-			int plazas_totales = leerInt(doc, "plazas_totales");
-			int plazas_disponibles = leerInt(doc, "plazas_disponibles");
-			Vuelo vuelo = new Vuelo(id, codigo_vuelo, origen, destino, fecha, hora, plazas_totales, plazas_disponibles);
-			AVuelos.add(vuelo);
-			
-		}
-		return AVuelos;
+		return vendidos.size();
 	}
-	
-	public void modificarMongo(int id, String campoMod, String valorMod) {
-		MongoClient mongo = crearConexion();
-		MongoDatabase db = mongo.getDatabase("adat_vuelos");
-		MongoCollection colleccionVuelos = db.getCollection("vuelos");
-		
-		Document quienCambio = new Document("ID", id);
-		Document cambios = new Document(campoMod, valorMod);
-		Document auxSet = new Document("$set", cambios);
-		colleccionVuelos.updateOne(quienCambio, auxSet);
 
-		System.out.println("Registro modificado con exito \r\n");
-	
+	public ArrayList<Vuelo> mostrarMongo(MongoClient mongo) {
+		try {
+
+			MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
+			MongoCollection colleccionVuelos = db.getCollection("vuelos2_0");
+			FindIterable fi = colleccionVuelos.find();
+			MongoCursor cur = fi.cursor();
+			ArrayList<Vuelo> AVuelos = new ArrayList<Vuelo>();
+
+			while (cur.hasNext()) {
+				Document doc = (Document) cur.next();
+				String codigo_vuelo = doc.getString("codigo");
+				String origen = doc.getString("origen");
+				String destino = doc.getString("destino");
+				String fecha = doc.getString("fecha");
+				String hora = doc.getString("hora");
+				int plazas_totales = leerInt(doc, "plazas_totales");
+				int plazas_disponibles = leerInt(doc, "plazas_disponibles");
+				Vuelo vuelo = new Vuelo(codigo_vuelo, origen, destino, fecha, hora, plazas_totales, plazas_disponibles);
+				AVuelos.add(vuelo);
+			}
+			return AVuelos;
+		} catch (Exception e) {
+			System.out.println("Error al mostrar los vuelos disponibles \r\n");
+			return null;
+		}
+	}
+
+	public void insertarVendidos(MongoClient mongo, String codigoCompra, String clienteDNI, String clienteApellido,
+			String clienteNombre, String clienteDNIPagador, String clienteTarjeta, String codigoVenta) {
+		try {
+			MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
+			MongoCollection colleccionVuelos = db.getCollection("vuelos2_0");
+
+			Document quienCambio = new Document("codigo", codigoCompra);
+			int numAsientos = lastID(mongo);
+			numAsientos++;
+			Document cambios = new Document().append("asiento", numAsientos).append("dni", clienteDNI)
+					.append("apellido", clienteApellido).append("nombre", clienteNombre)
+					.append("dniPagador", clienteDNIPagador).append("tarjeta", clienteTarjeta)
+					.append("codigoVenta", codigoVenta);
+			colleccionVuelos.updateOne(quienCambio, Updates.addToSet("vendidos", cambios));
+
+		} catch (Exception e) {
+			System.out.println("Error al insertar en vendidos \r\n");
+		}
+	}
+
+	public void restarPlazas(MongoClient mongo, String codigoCompra) {
+		try {
+			MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
+			MongoCollection coleccionVuelos = db.getCollection("vuelos2_0");
+			BasicDBObject whereQuery = new BasicDBObject();
+			whereQuery.put("codigo", codigoCompra);
+			FindIterable fi = coleccionVuelos.find(whereQuery);
+			MongoCursor cur = fi.cursor();
+
+			Document doc = (Document) cur.next();
+			int plazasDisponibles = leerInt(doc, "plazas_disponibles");
+			plazasDisponibles--;
+			Document quienCambio = new Document("codigo", codigoCompra);
+			Document cambios = new Document("plazas_disponibles", plazasDisponibles);
+			Document auxSet = new Document("$set", cambios);
+			coleccionVuelos.updateOne(quienCambio, auxSet);
+
+		} catch (Exception e) {
+			System.out.println("Error al modificar las plazas disponibles\r\n");
+		}
 	}
 
 	public int leerInt(Document doc, String nombreCampo) {
@@ -95,19 +127,18 @@ public class MenuMongoDB {
 			valor = (int) Math.round(doc.getDouble(nombreCampo));
 		}
 		return valor;
-
 	}
-	
+
 	public String randomCodigoVenta() {
 
 		String values = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-        StringBuilder sb = new StringBuilder();
-        Random rnd = new Random();
-        while (sb.length() < 9) { 
-            int index = (int) (rnd.nextFloat() * values.length());
-            sb.append(values.charAt(index));
-        }
-        String codigoVenta = sb.toString();
-        return codigoVenta;
+		StringBuilder sb = new StringBuilder();
+		Random rnd = new Random();
+		while (sb.length() < 9) {
+			int index = (int) (rnd.nextFloat() * values.length());
+			sb.append(values.charAt(index));
+		}
+		String codigoVenta = sb.toString();
+		return codigoVenta;
 	}
 }

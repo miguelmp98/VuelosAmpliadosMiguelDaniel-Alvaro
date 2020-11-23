@@ -6,13 +6,23 @@ import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
+import com.mongodb.MongoClient;
+
 import controlador.MenuMongoDB;
 import modelo.Vuelo;
 
 public class main {
 	public static void main(String[] args) throws IOException, SQLException {
+		System.out.println("Bienvenido a la gestión de tus vuelos.");
+
+		seleccionarMetodo();
+
+	}
+
+	public static void seleccionarMetodo() {
 		MenuMongoDB MongoDB = new MenuMongoDB();
 		Scanner sc = new Scanner(System.in);
+		MongoClient mongo = MongoDB.crearConexion();
 
 		boolean salir = false;
 		int opcion;
@@ -31,15 +41,14 @@ public class main {
 				case 1:
 
 					System.out.println("Vuelos Disponibles");
-					ArrayList<Vuelo> AVuelos = MongoDB.mostrarMongo();
-					// Preguntar si quieren realizar la conexion en el main al grupo
+					ArrayList<Vuelo> AVuelos = MongoDB.mostrarMongo(mongo);
 					for (Vuelo i : AVuelos) {
-						System.out.println("Id: " + i.getId() + ", Codigo: " + i.getCodigo_vuelo() + ", ORIGEN: "
-								+ i.getOrigen() + ", Destino: " + i.getDestino() + ", Fecha: " + i.getFecha()
-								+ ", Hora: " + i.getHora() + ", Plazas Totales: " + i.getPlazas_totales()
-								+ ", Plazas Disponibles: " + i.getPlazas_disponibles());
+						System.out.println("Codigo Vuelo: " + i.getCodigo_vuelo() + ", ORIGEN: " + i.getOrigen()
+								+ ", Destino: " + i.getDestino() + ", Fecha: " + i.getFecha() + ", Hora: " + i.getHora()
+								+ ", Plazas Totales: " + i.getPlazas_totales() + ", Plazas Disponibles: "
+								+ i.getPlazas_disponibles());
 					}
-
+					System.out.println();
 					System.out.println("Introduce el Codigo del vuelo que quiere comprar");
 					String codigoCompra = sc.next();
 					System.out.println("Introduzca su DNI");
@@ -49,16 +58,21 @@ public class main {
 					System.out.println("Introduzca su apellido");
 					String clienteApellido = sc.next();
 					System.out.println("Introduzca su DNI del pagador");
-					String clienteDNIPagador = sc.next();	
-					 String codigoVenta = MongoDB.randomCodigoVenta();
-					 System.out.println("Codigo de Venta:" + codigoVenta);
+					String clienteDNIPagador = sc.next();
+					System.out.println("Introduzca la tarjeta de credito del pago a efectuar");
+					String clienteTarjeta = sc.next();
+					String codigoVenta = MongoDB.randomCodigoVenta();
+					System.out.println("Su Codigo de Venta es: " + codigoVenta + "\r\n");
+					MongoDB.insertarVendidos(mongo, codigoCompra, clienteDNI, clienteApellido, clienteNombre, clienteDNIPagador, clienteTarjeta, codigoVenta);
+					MongoDB.restarPlazas(mongo, codigoCompra);
 					
 					break;
 				case 2:
-				//aqui pones tus cositas miik
+					// aqui va deletear
 					break;
 				case 3:
-				//aqui pones tus cositas griso
+					// aqui va modificar
+
 					break;
 				case 4:
 					salir = true;

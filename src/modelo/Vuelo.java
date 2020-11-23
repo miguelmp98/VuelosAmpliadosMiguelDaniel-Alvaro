@@ -1,7 +1,6 @@
 package modelo;
 
 public class Vuelo {
-	int id;
 	String codigo_vuelo;
 	String origen;
 	String destino;
@@ -11,8 +10,7 @@ public class Vuelo {
 	int plazas_disponibles;
 
 
-	public Vuelo(int id, String codigo_vuelo, String origen, String destino, String fecha, String hora, int plazas_totales, int plazas_disponibles) {
-		this.id = id;
+	public Vuelo(String codigo_vuelo, String origen, String destino, String fecha, String hora, int plazas_totales, int plazas_disponibles) {
 		this.codigo_vuelo = codigo_vuelo;
 		this.origen = origen;
 		this.destino = destino;
@@ -21,16 +19,6 @@ public class Vuelo {
 		this.plazas_totales = plazas_totales;
 		this.plazas_disponibles = plazas_disponibles;
 
-	}
-
-
-	public int getId() {
-		return id;
-	}
-
-
-	public void setId(int id) {
-		this.id = id;
 	}
 
 

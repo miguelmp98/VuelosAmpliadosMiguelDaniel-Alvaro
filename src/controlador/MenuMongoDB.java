@@ -32,7 +32,6 @@ public class MenuMongoDB {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 		return mongo;
 	}
 
@@ -95,7 +94,8 @@ public class MenuMongoDB {
 					.append("dniPagador", clienteDNIPagador).append("tarjeta", clienteTarjeta)
 					.append("codigoVenta", codigoVenta);
 			colleccionVuelos.updateOne(quienCambio, Updates.addToSet("vendidos", cambios));
-
+			
+			System.out.println("Vuelo comprado correctamente \r\n");
 		} catch (Exception e) {
 			System.out.println("Error al insertar en vendidos \r\n");
 		}
@@ -147,14 +147,20 @@ public class MenuMongoDB {
 	}
 
 	public void cancelarMongo(MongoClient mongo, String codigoCompra, String clienteDNI, String codigoVenta) {
-		MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
-		MongoCollection colleccionVuelos = db.getCollection("vuelos2_0");
-		Document quienCambio = new Document("codigo", codigoCompra);
-		Document cambiosaRealizar = new Document("dni", clienteDNI).append("codigoVenta", codigoVenta);
-		Document auxSet1 = new Document("vendidos", cambiosaRealizar);
-		Document auxSet2 = new Document("$pull", auxSet1);
-		colleccionVuelos.updateOne(quienCambio, auxSet2);
+		try {
+			MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
+			MongoCollection colleccionVuelos = db.getCollection("vuelos2_0");
+			Document quienCambio = new Document("codigo", codigoCompra);
+			Document cambiosaRealizar = new Document("dni", clienteDNI).append("codigoVenta", codigoVenta);
+			Document auxSet1 = new Document("vendidos", cambiosaRealizar);
+			Document auxSet2 = new Document("$pull", auxSet1);
+			colleccionVuelos.updateOne(quienCambio, auxSet2);
 
+			System.out.println("Vuelo cancelado correctamente \r\n");
+
+		} catch (Exception e) {
+			System.out.println("Error al cancelar un vuelo \r\n");
+		}
 	}
 
 	public void sumarPlazas(MongoClient mongo, String codigoCompra) {
@@ -175,7 +181,7 @@ public class MenuMongoDB {
 			coleccionVuelos.updateOne(quienCambio, auxSet);
 
 		} catch (Exception e) {
-			System.out.println("Error al modificar las plazas disponibles\r\n");
+			System.out.println("Error al modificar las plazas disponibles \r\n");
 		}
 	}
 }

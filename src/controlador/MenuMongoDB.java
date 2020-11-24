@@ -146,10 +146,10 @@ public class MenuMongoDB {
 		return codigoVenta;
 	}
 
-	public void cancelarMongo(MongoClient mongo, String codigo, String clienteDNI, String codigoVenta) {
+	public void cancelarMongo(MongoClient mongo, String codigoCompra, String clienteDNI, String codigoVenta) {
 		MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
 		MongoCollection colleccionVuelos = db.getCollection("vuelos2_0");
-		Document quienCambio = new Document("codigo", codigo);
+		Document quienCambio = new Document("codigo", codigoCompra);
 		Document cambiosaRealizar = new Document("dni", clienteDNI).append("codigoVenta", codigoVenta);
 		Document auxSet1 = new Document("vendidos", cambiosaRealizar);
 		Document auxSet2 = new Document("$pull", auxSet1);

@@ -71,13 +71,14 @@ public class main {
 					break;
 				case 2:
 					System.out.println("Introduce el codigo de vuelo");
-					String codigo = sc.next();
+					codigoCompra = sc.next();
 					System.out.println("Introduce tu DNI");
 					clienteDNI = sc.next();
 					System.out.println("Introduce el codigo de Venta");
 					codigoVenta = sc.next();
-					MongoDB.cancelarMongo(mongo, codigo, clienteDNI, codigoVenta);
+					MongoDB.cancelarMongo(mongo, codigoCompra, clienteDNI, codigoVenta);
 					System.out.println("Cancelado correctamente");
+					MongoDB.sumarPlazas(mongo, codigoCompra);
 					break;
 				case 3:
 					// aqui va modificar

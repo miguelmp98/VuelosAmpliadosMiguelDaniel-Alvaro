@@ -81,7 +81,8 @@ public class MenuMongoDB {
 		}
 	}
 
-	public void insertarVendidos(MongoClient mongo, String codigoCompra, String clienteDNI, String clienteApellido, String clienteNombre, String clienteDNIPagador, String clienteTarjeta, String codigoVenta) {
+	public void insertarVendidos(MongoClient mongo, String codigoCompra, String clienteDNI, String clienteApellido,
+			String clienteNombre, String clienteDNIPagador, String clienteTarjeta, String codigoVenta) {
 		try {
 			MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
 			MongoCollection colleccionVuelos = db.getCollection("vuelos2_0");
@@ -143,5 +144,39 @@ public class MenuMongoDB {
 		}
 		String codigoVenta = sb.toString();
 		return codigoVenta;
+	}
+
+	public void cancelarMongo(String codigo, String clienteDNI, String codigoVenta) {
+		MongoClient mongo = crearConexion();
+		MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
+		MongoCollection colleccionVuelos = db.getCollection("vuelos2_0");
+		Document quienCambio = new Document("codigo", codigo);
+		Document cambiosaRealizar = new Document("dni", clienteDNI).append("codigoVenta", codigoVenta);
+		Document auxSet1 = new Document("vendidos", cambiosaRealizar);
+		Document auxSet2 = new Document("$pull", auxSet1);
+		colleccionVuelos.updateOne(quienCambio, auxSet2);
+
+	}
+
+	public void sumarPlazas(MongoClient mongo, String codigoCompra) {
+		try {
+			MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
+			MongoCollection coleccionVuelos = db.getCollection("vuelos2_0");
+			BasicDBObject whereQuery = new BasicDBObject();
+			whereQuery.put("codigo", codigoCompra);
+			FindIterable fi = coleccionVuelos.find(whereQuery);
+			MongoCursor cur = fi.cursor();
+
+			Document doc = (Document) cur.next();
+			int plazasDisponibles = leerInt(doc, "plazas_disponibles");
+			plazasDisponibles++;
+			Document quienCambio = new Document("codigo", codigoCompra);
+			Document cambios = new Document("plazas_disponibles", plazasDisponibles);
+			Document auxSet = new Document("$set", cambios);
+			coleccionVuelos.updateOne(quienCambio, auxSet);
+
+		} catch (Exception e) {
+			System.out.println("Error al modificar las plazas disponibles\r\n");
+		}
 	}
 }

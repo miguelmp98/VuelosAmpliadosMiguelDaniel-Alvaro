@@ -13,7 +13,7 @@ import modelo.Vuelo;
 
 public class main {
 	public static void main(String[] args) throws IOException, SQLException {
-		System.out.println("Bienvenido a la gestión de tus vuelos.");
+		System.out.println("Bienvenido a la gestiï¿½n de tus vuelos.");
 
 		seleccionarMetodo();
 
@@ -64,12 +64,20 @@ public class main {
 					String clienteTarjeta = sc.nextLine();
 					String codigoVenta = MongoDB.randomCodigoVenta();
 					System.out.println("Su Codigo de Venta es: " + codigoVenta + "\r\n");
-					MongoDB.insertarVendidos(mongo, codigoCompra, clienteDNI, clienteApellido, clienteNombre, clienteDNIPagador, clienteTarjeta, codigoVenta);
+					MongoDB.insertarVendidos(mongo, codigoCompra, clienteDNI, clienteApellido, clienteNombre,
+							clienteDNIPagador, clienteTarjeta, codigoVenta);
 					MongoDB.restarPlazas(mongo, codigoCompra);
-					
+
 					break;
 				case 2:
-					// aqui va deletear
+					System.out.println("Introduce el codigo de vuelo");
+					String codigo = sc.next();
+					System.out.println("Introduce tu DNI");
+					clienteDNI = sc.next();
+					System.out.println("Introduce el codigo de Venta");
+					codigoVenta = sc.next();
+					MongoDB.cancelarMongo(codigo, clienteDNI, codigoVenta);
+					System.out.println("Cancelado correctamente");
 					break;
 				case 3:
 					// aqui va modificar

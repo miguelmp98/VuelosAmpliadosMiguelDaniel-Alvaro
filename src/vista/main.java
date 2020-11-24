@@ -76,7 +76,7 @@ public class main {
 					clienteDNI = sc.next();
 					System.out.println("Introduce el codigo de Venta");
 					codigoVenta = sc.next();
-					MongoDB.cancelarMongo(codigo, clienteDNI, codigoVenta);
+					MongoDB.cancelarMongo(mongo, codigo, clienteDNI, codigoVenta);
 					System.out.println("Cancelado correctamente");
 					break;
 				case 3:

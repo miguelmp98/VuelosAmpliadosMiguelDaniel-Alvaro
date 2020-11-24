@@ -146,8 +146,7 @@ public class MenuMongoDB {
 		return codigoVenta;
 	}
 
-	public void cancelarMongo(String codigo, String clienteDNI, String codigoVenta) {
-		MongoClient mongo = crearConexion();
+	public void cancelarMongo(MongoClient mongo, String codigo, String clienteDNI, String codigoVenta) {
 		MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
 		MongoCollection colleccionVuelos = db.getCollection("vuelos2_0");
 		Document quienCambio = new Document("codigo", codigo);

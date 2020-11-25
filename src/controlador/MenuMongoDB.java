@@ -184,4 +184,58 @@ public class MenuMongoDB {
 			System.out.println("Error al modificar las plazas disponibles \r\n");
 		}
 	}
+	public void modificarVueloComprado(MongoClient mongo, String codVuelo, String dniActual, String codigoVenta) {
+
+		Scanner sc = new Scanner(System.in);
+		try {
+			MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
+			MongoCollection colleccionVuelos = db.getCollection("vuelos2_0");
+
+			BasicDBObject whereQuery = new BasicDBObject();
+			whereQuery.put("codigo", codVuelo);
+			whereQuery.put("vendidos.dni", dniActual);
+			whereQuery.put("vendidos.codigoVenta", codigoVenta);
+
+			FindIterable fi = colleccionVuelos.find(whereQuery);
+			MongoCursor cursor = fi.cursor();
+			Document doc = (Document) cursor.next();
+			ArrayList<Document> vendidos = new ArrayList<Document>();
+			vendidos.addAll((ArrayList<Document>) doc.get("vendidos"));
+
+			int numAsiento = leerInt(vendidos.get(0), "asiento");
+
+			System.out.println("INSERTE LOS NUEVOS DATOS A MODIFICAR:  ");
+			System.out.println("DNI:");
+			String nuevoDni = sc.nextLine();
+			System.out.println("NOMBRE:");
+			String nombre = sc.nextLine();
+			System.out.println("APELLIDO:");
+			String apellido = sc.nextLine();
+			System.out.println("TARJETA DE CRÉDITO:");
+			String tarjeta = sc.nextLine();
+			System.out.println("DNI QUE HA PAGADO");
+			String dniPagador = sc.nextLine();
+
+			BasicDBObject condicion = new BasicDBObject("codigo", codVuelo);
+			condicion.put("vendidos.dni", dniActual);
+			condicion.put("vendidos.codigoVenta", codigoVenta);
+
+			BasicDBObject cambios = new BasicDBObject();
+			cambios.put("vendidos.$.asiento", numAsiento);
+			cambios.put("vendidos.$.dni", nuevoDni);
+			cambios.put("vendidos.$.apellido", apellido);
+			cambios.put("vendidos.$.nombre", nombre);
+			cambios.put("vendidos.$.dniPagador", dniPagador);
+			cambios.put("vendidos.$.tarjeta", tarjeta);
+			cambios.put("vendidos.$.codigoVenta", codigoVenta);
+
+			BasicDBObject operacion = new BasicDBObject();
+			operacion.put("$set", cambios);
+			colleccionVuelos.updateOne(condicion, operacion);
+
+			System.out.println("El vuelos que compraste ha sido modificado correctamente");
+		} catch (Exception e) {
+			System.out.println("Error al modificar la informacion de la venta \r\n");
+		}
+	}
 }

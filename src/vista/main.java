@@ -80,7 +80,14 @@ public class main {
 					
 					break;
 				case 3:
-					// aqui va modificar
+					System.out.println("INSERTE CÓDIGO DE VUELO A MODIFICAR: ");
+                    String aux = sc.nextLine();
+                    String codVuelo = sc.nextLine();
+                    System.out.println("DNI ACTUAL: ");
+                    String dniActual = sc.nextLine();
+                    System.out.println("CÓDIGO DE VENTA: ");
+                    codigoVenta = sc.nextLine();
+                    MongoDB.modificarVueloComprado(mongo, codVuelo, dniActual, codigoVenta);
 
 					break;
 				case 4:

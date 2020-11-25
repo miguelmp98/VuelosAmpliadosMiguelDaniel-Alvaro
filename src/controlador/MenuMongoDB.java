@@ -111,6 +111,7 @@ public class MenuMongoDB {
 			MongoCursor cur = fi.cursor();
 
 			Document doc = (Document) cur.next();
+			
 			int plazasDisponibles = leerInt(doc, "plazas_disponibles");
 			plazasDisponibles--;
 			Document quienCambio = new Document("codigo", codigoCompra);
@@ -184,7 +185,7 @@ public class MenuMongoDB {
 			System.out.println("Error al modificar las plazas disponibles \r\n");
 		}
 	}
-	public void modificarVueloComprado(MongoClient mongo, String codVuelo, String dniActual, String codigoVenta) {
+	public void modificarVueloComprado(MongoClient mongo, String codVuelo, String dniActual,String dniPagador, String codigoVenta) {
 
 		Scanner sc = new Scanner(System.in);
 		try {
@@ -214,13 +215,16 @@ public class MenuMongoDB {
 			System.out.println("TARJETA DE CRÉDITO:");
 			String tarjeta = sc.nextLine();
 			System.out.println("DNI QUE HA PAGADO");
-			String dniPagador = sc.nextLine();
+			dniPagador = sc.nextLine();
 
 			BasicDBObject condicion = new BasicDBObject("codigo", codVuelo);
 			condicion.put("vendidos.dni", dniActual);
 			condicion.put("vendidos.codigoVenta", codigoVenta);
 
 			BasicDBObject cambios = new BasicDBObject();
+			
+			//$ para acceder a posición
+			
 			cambios.put("vendidos.$.asiento", numAsiento);
 			cambios.put("vendidos.$.dni", nuevoDni);
 			cambios.put("vendidos.$.apellido", apellido);

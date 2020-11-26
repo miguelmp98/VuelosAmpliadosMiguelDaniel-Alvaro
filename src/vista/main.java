@@ -80,18 +80,18 @@ public class main {
 					
 					break;
 				case 3:
-					System.out.println("Introduzca el código de vuelo a modificar: ");
+					System.out.println("Introduzca el cï¿½digo de vuelo a modificar: ");
                     String aux = sc.nextLine();
                     String codVuelo = sc.nextLine();
                     System.out.println("Introduzca dni actual: ");
                     String dniActual = sc.nextLine();
                     
                     // dnipagador nuevo campo introducido ''obligatorio'' -- es un campo(dniPagador) que el usuario debe saber de antemano para poder modificar
-                    // si no, no podróa modificar (like a vida real)
-                    
+                    // si no, no podrï¿½a modificar (like a vida real)
+                    System.out.println("");
                     System.out.println("Introduzca dni del pagador: ");
                     String dniPagador = sc.nextLine();
-                    System.out.println("Introduzca el código de venta: ");
+                    System.out.println("Introduzca el cï¿½digo de venta: ");
                     codigoVenta = sc.nextLine();
                     MongoDB.modificarVueloComprado(mongo, codVuelo, dniActual,dniPagador, codigoVenta);
 

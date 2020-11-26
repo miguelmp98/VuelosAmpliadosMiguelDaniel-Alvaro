@@ -17,47 +17,42 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Updates;
 
 import modelo.Vuelo;
+import vista.main;
 
 public class MenuMongoDB {
-	int lastID;
+	private int lastID;
+	private MongoClient mongo;
+	private MongoDatabase db;
+	private MongoCollection coleccionVuelos;
 
 	public MenuMongoDB() {
-
-	}
-
-	public MongoClient crearConexion() {
-		MongoClient mongo = null;
 		try {
 			mongo = new MongoClient("localhost", 27017);
+			db = mongo.getDatabase("VuelosAmpliada");
+			coleccionVuelos = db.getCollection("vuelos2_0");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return mongo;
 	}
 
-	public int lastID(MongoClient mongo, String codigoCompra) {
+	public int numAsientos(String codVuelo) {
 		try {
-			MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
-			MongoCollection collection = db.getCollection("vuelos2_0");
 			BasicDBObject whereQuery = new BasicDBObject();
-			whereQuery.put("codigo", codigoCompra);
-			FindIterable fi = collection.find(whereQuery);
+			whereQuery.put("codigo", codVuelo);
+			FindIterable fi = coleccionVuelos.find(whereQuery);
 			MongoCursor cursor = fi.cursor();
 			Document doc = (Document) cursor.next();
 			ArrayList<Document> vendidos = new ArrayList<Document>();
 			vendidos.addAll((ArrayList<Document>) doc.get("vendidos"));
-
 			return vendidos.size();
 		} catch (Exception e) {
 			return 0;
 		}
 	}
 
-	public ArrayList<Vuelo> mostrarMongo(MongoClient mongo) {
+	public ArrayList<Vuelo> mostrarMongo() {
 		try {
-			MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
-			MongoCollection colleccionVuelos = db.getCollection("vuelos2_0");
-			FindIterable fi = colleccionVuelos.find();
+			FindIterable fi = coleccionVuelos.find();
 			MongoCursor cur = fi.cursor();
 			ArrayList<Vuelo> AVuelos = new ArrayList<Vuelo>();
 
@@ -80,20 +75,16 @@ public class MenuMongoDB {
 		}
 	}
 
-	public void insertarVendidos(MongoClient mongo, String codigoCompra, String clienteDNI, String clienteApellido,
-			String clienteNombre, String clienteDNIPagador, String clienteTarjeta, String codigoVenta) {
+	public void insertarVendidos(String codVuelo, String clienteDNI, String clienteApellido, String clienteNombre, String clienteDNIPagador, String clienteTarjeta, String codigoVenta) {
 		try {
-			MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
-			MongoCollection colleccionVuelos = db.getCollection("vuelos2_0");
-
-			Document quienCambio = new Document("codigo", codigoCompra);
-			int numAsientos = lastID(mongo, codigoCompra);
+			Document quienCambio = new Document("codigo", codVuelo);
+			int numAsientos = numAsientos(codVuelo);
 			numAsientos++;
 			Document cambios = new Document().append("asiento", numAsientos).append("dni", clienteDNI)
 					.append("apellido", clienteApellido).append("nombre", clienteNombre)
 					.append("dniPagador", clienteDNIPagador).append("tarjeta", clienteTarjeta)
 					.append("codigoVenta", codigoVenta);
-			colleccionVuelos.updateOne(quienCambio, Updates.addToSet("vendidos", cambios));
+			coleccionVuelos.updateOne(quienCambio, Updates.addToSet("vendidos", cambios));
 			
 			System.out.println("Vuelo comprado correctamente \r\n");
 		} catch (Exception e) {
@@ -101,12 +92,10 @@ public class MenuMongoDB {
 		}
 	}
 
-	public void restarPlazas(MongoClient mongo, String codigoCompra) {
+	public void restarPlazas(String codVuelo) {
 		try {
-			MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
-			MongoCollection coleccionVuelos = db.getCollection("vuelos2_0");
 			BasicDBObject whereQuery = new BasicDBObject();
-			whereQuery.put("codigo", codigoCompra);
+			whereQuery.put("codigo", codVuelo);
 			FindIterable fi = coleccionVuelos.find(whereQuery);
 			MongoCursor cur = fi.cursor();
 
@@ -114,7 +103,7 @@ public class MenuMongoDB {
 			
 			int plazasDisponibles = leerInt(doc, "plazas_disponibles");
 			plazasDisponibles--;
-			Document quienCambio = new Document("codigo", codigoCompra);
+			Document quienCambio = new Document("codigo", codVuelo);
 			Document cambios = new Document("plazas_disponibles", plazasDisponibles);
 			Document auxSet = new Document("$set", cambios);
 			coleccionVuelos.updateOne(quienCambio, auxSet);
@@ -135,7 +124,6 @@ public class MenuMongoDB {
 	}
 
 	public String randomCodigoVenta() {
-
 		String values = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
 		StringBuilder sb = new StringBuilder();
 		Random rnd = new Random();
@@ -147,15 +135,13 @@ public class MenuMongoDB {
 		return codigoVenta;
 	}
 
-	public void cancelarMongo(MongoClient mongo, String codigoCompra, String clienteDNI, String codigoVenta) {
+	public void cancelarMongo(String codVuelo, String clienteDNI, String codigoVenta) {
 		try {
-			MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
-			MongoCollection colleccionVuelos = db.getCollection("vuelos2_0");
-			Document quienCambio = new Document("codigo", codigoCompra);
+			Document quienCambio = new Document("codigo", codVuelo);
 			Document cambiosaRealizar = new Document("dni", clienteDNI).append("codigoVenta", codigoVenta);
 			Document auxSet1 = new Document("vendidos", cambiosaRealizar);
 			Document auxSet2 = new Document("$pull", auxSet1);
-			colleccionVuelos.updateOne(quienCambio, auxSet2);
+			coleccionVuelos.updateOne(quienCambio, auxSet2);
 
 			System.out.println("Vuelo cancelado correctamente \r\n");
 
@@ -164,19 +150,17 @@ public class MenuMongoDB {
 		}
 	}
 
-	public void sumarPlazas(MongoClient mongo, String codigoCompra) {
+	public void sumarPlazas(String codgoVuelo) {
 		try {
-			MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
-			MongoCollection coleccionVuelos = db.getCollection("vuelos2_0");
 			BasicDBObject whereQuery = new BasicDBObject();
-			whereQuery.put("codigo", codigoCompra);
+			whereQuery.put("codigo", codgoVuelo);
 			FindIterable fi = coleccionVuelos.find(whereQuery);
 			MongoCursor cur = fi.cursor();
 
 			Document doc = (Document) cur.next();
 			int plazasDisponibles = leerInt(doc, "plazas_disponibles");
 			plazasDisponibles++;
-			Document quienCambio = new Document("codigo", codigoCompra);
+			Document quienCambio = new Document("codigo", codgoVuelo);
 			Document cambios = new Document("plazas_disponibles", plazasDisponibles);
 			Document auxSet = new Document("$set", cambios);
 			coleccionVuelos.updateOne(quienCambio, auxSet);
@@ -185,26 +169,31 @@ public class MenuMongoDB {
 			System.out.println("Error al modificar las plazas disponibles \r\n");
 		}
 	}
-	public void modificarVueloComprado(MongoClient mongo, String codVuelo, String dniActual,String dniPagador, String codigoVenta) {
-
+	
+	public void modificarVueloComprado(String codVuelo, String dniActual,String dniPagador, String codigoVenta) {
 		Scanner sc = new Scanner(System.in);
 		try {
-			MongoDatabase db = mongo.getDatabase("VuelosAmpliada");
-			MongoCollection colleccionVuelos = db.getCollection("vuelos2_0");
+			BasicDBObject condicion = new BasicDBObject();
+			condicion.put("codigo", codVuelo);
+			condicion.put("vendidos.dni", dniActual);
+			condicion.put("vendidos.codigoVenta", codigoVenta);
+			condicion.put("vendidos.dniPagador", dniPagador);
 
-			BasicDBObject whereQuery = new BasicDBObject();
-			whereQuery.put("codigo", codVuelo);
-			whereQuery.put("vendidos.dni", dniActual);
-			whereQuery.put("vendidos.codigoVenta", codigoVenta);
-
-			FindIterable fi = colleccionVuelos.find(whereQuery);
+			FindIterable fi = coleccionVuelos.find(condicion);
 			MongoCursor cursor = fi.cursor();
 			Document doc = (Document) cursor.next();
 			ArrayList<Document> vendidos = new ArrayList<Document>();
 			vendidos.addAll((ArrayList<Document>) doc.get("vendidos"));
-
-			int numAsiento = leerInt(vendidos.get(0), "asiento");
-
+			int numAsiento = 0;
+			for (int i = 0; i < vendidos.size(); i++) {
+				String dniCheck = vendidos.get(i).getString("dni");
+				String codigoVentaCheck = vendidos.get(i).getString("codigoVenta");
+				String dniPagadorCheck = vendidos.get(i).getString("dniPagador");			
+				if(dniCheck.equals(dniActual) && codigoVentaCheck.equals(codigoVenta) && dniPagadorCheck.equals(dniPagador)) {
+					 numAsiento = leerInt(vendidos.get(i), "asiento");
+				}
+			}
+			
 			System.out.println("INSERTE LOS NUEVOS DATOS A MODIFICAR:  ");
 			System.out.println("DNI:");
 			String nuevoDni = sc.nextLine();
@@ -217,14 +206,8 @@ public class MenuMongoDB {
 			System.out.println("DNI QUE HA PAGADO");
 			dniPagador = sc.nextLine();
 
-			BasicDBObject condicion = new BasicDBObject("codigo", codVuelo);
-			condicion.put("vendidos.dni", dniActual);
-			condicion.put("vendidos.codigoVenta", codigoVenta);
-
-			BasicDBObject cambios = new BasicDBObject();
-			
+			BasicDBObject cambios = new BasicDBObject();		
 			//$ para acceder a posición
-			
 			cambios.put("vendidos.$.asiento", numAsiento);
 			cambios.put("vendidos.$.dni", nuevoDni);
 			cambios.put("vendidos.$.apellido", apellido);
@@ -235,11 +218,27 @@ public class MenuMongoDB {
 
 			BasicDBObject operacion = new BasicDBObject();
 			operacion.put("$set", cambios);
-			colleccionVuelos.updateOne(condicion, operacion);
+			coleccionVuelos.updateOne(condicion, operacion);
 
-			System.out.println("El vuelos que compraste ha sido modificado correctamente");
+			System.out.println("El Vuelo que compraste ha sido modificado correctamente \r\n");
 		} catch (Exception e) {
 			System.out.println("Error al modificar la informacion de la venta \r\n");
 		}
 	}
+
+	public void vueloLleno(String codVuelo) {
+
+		BasicDBObject condicion = new BasicDBObject();
+		condicion.put("codigo", codVuelo);
+		FindIterable fi = coleccionVuelos.find(condicion);
+		MongoCursor cur = fi.cursor();
+		Document doc = (Document) cur.next();
+
+		int plazas_disponibles = leerInt(doc, "plazas_disponibles");
+		if (plazas_disponibles <= 0) {
+			System.out.println("Lo sentimos, el Vuelo " + codVuelo + " esta completo! :C");
+			main.seleccionarMetodo();
+		}
+	}
+
 }

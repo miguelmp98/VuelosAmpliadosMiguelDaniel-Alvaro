@@ -13,7 +13,7 @@ import modelo.Vuelo;
 
 public class main {
 	public static void main(String[] args) throws IOException, SQLException {
-		System.out.println("Bienvenido a la gesti�n de tus vuelos.");
+		System.out.println("Bienvenido a la gestion de tus vuelos.");
 
 		seleccionarMetodo();
 
@@ -21,9 +21,14 @@ public class main {
 
 	public static void seleccionarMetodo() {
 		MenuMongoDB MongoDB = new MenuMongoDB();
-		Scanner sc = new Scanner(System.in);
-		MongoClient mongo = MongoDB.crearConexion();
-
+		Scanner sc = new Scanner(System.in);		
+		String codVuelo;
+		String clienteDNI; 
+		String clienteNombre;
+		String clienteApellido;
+		String clienteDNIPagador;
+		String clienteTarjeta;
+		String codigoVenta;
 		boolean salir = false;
 		int opcion;
 
@@ -40,7 +45,7 @@ public class main {
 				switch (opcion) {
 				case 1:
 
-					ArrayList<Vuelo> AVuelos = MongoDB.mostrarMongo(mongo);
+					ArrayList<Vuelo> AVuelos = MongoDB.mostrarMongo();
 					System.out.println("Vuelos Disponibles: ");
 					for (Vuelo i : AVuelos) {
 						System.out.println("Codigo Vuelo: " + i.getCodigo_vuelo() + ", ORIGEN: " + i.getOrigen()
@@ -49,52 +54,48 @@ public class main {
 								+ i.getPlazas_disponibles());
 					}
 					System.out.println();
-					System.out.println("Introduce el Codigo del vuelo que quiere comprar:");
-					String codigoCompra = sc.next().toUpperCase();
+					System.out.println("Introduzca el Codigo del vuelo que quiere comprar:");
+					codVuelo = sc.next().toUpperCase();
+					MongoDB.vueloLleno(codVuelo);			
 					System.out.println("Introduzca su DNI: ");
-					String clienteDNI = sc.next();
+					clienteDNI = sc.next();
 					System.out.println("Introduzca su nombre: ");
-					String clienteNombre = sc.next();
+					clienteNombre = sc.next();
 					System.out.println("Introduzca su apellido: ");
-					String clienteApellido = sc.next();
+					clienteApellido = sc.next();
 					System.out.println("Introduzca su DNI del pagador: ");
-					String clienteDNIPagador = sc.next();
+					clienteDNIPagador = sc.next();
 					System.out.println("Introduzca la tarjeta de credito del pago a efectuar: ");
 					sc.nextLine();
-					String clienteTarjeta = sc.nextLine();
-					String codigoVenta = MongoDB.randomCodigoVenta();
+					clienteTarjeta = sc.nextLine();
+					codigoVenta = MongoDB.randomCodigoVenta();
 					System.out.println("Su Codigo de Venta es: " + codigoVenta + "\r\n");
-					MongoDB.insertarVendidos(mongo, codigoCompra, clienteDNI, clienteApellido, clienteNombre, clienteDNIPagador, clienteTarjeta, codigoVenta);
-					MongoDB.restarPlazas(mongo, codigoCompra);
+					MongoDB.insertarVendidos(codVuelo, clienteDNI, clienteApellido, clienteNombre, clienteDNIPagador, clienteTarjeta, codigoVenta);
+					MongoDB.restarPlazas(codVuelo);
 									
 					break;
 				case 2:
-					System.out.println("Introduce el codigo de vuelo");
-					codigoCompra = sc.next().toUpperCase();
-					System.out.println("Introduce tu DNI: ");
+					System.out.println("Introduzca el codigo de vuelo");
+					codVuelo = sc.next().toUpperCase();
+					System.out.println("Introduzca tu DNI: ");
 					clienteDNI = sc.next();
-					System.out.println("Introduce el codigo de Venta: ");
+					System.out.println("Introduzca el codigo de Venta: ");
 					codigoVenta = sc.next();
-					MongoDB.cancelarMongo(mongo, codigoCompra, clienteDNI, codigoVenta);				
-					MongoDB.sumarPlazas(mongo, codigoCompra);
+					MongoDB.cancelarMongo(codVuelo, clienteDNI, codigoVenta);				
+					MongoDB.sumarPlazas(codVuelo);
 					
 					break;
 				case 3:
-					System.out.println("Introduzca el c�digo de vuelo a modificar: ");
-                    String aux = sc.nextLine();
-                    String codVuelo = sc.nextLine();
-                    System.out.println("Introduzca dni actual: ");
-                    String dniActual = sc.nextLine();
+					System.out.println("Introduzca el codigo de vuelo a modificar: ");
+					codVuelo = sc.next().toUpperCase();
+                    System.out.println("Introduzca DNI actual: ");
+                    clienteDNI = sc.next();
+                    System.out.println("Introduzca DNI del pagador: ");
+                    clienteDNIPagador = sc.next();
+                    System.out.println("Introduzca el codigo de venta: ");
+                    codigoVenta = sc.next();
+                    MongoDB.modificarVueloComprado(codVuelo, clienteDNI, clienteDNIPagador, codigoVenta);
                     
-                    // dnipagador nuevo campo introducido ''obligatorio'' -- es un campo(dniPagador) que el usuario debe saber de antemano para poder modificar
-                    // si no, no podr�a modificar (like a vida real)
-                    System.out.println("");
-                    System.out.println("Introduzca dni del pagador: ");
-                    String dniPagador = sc.nextLine();
-                    System.out.println("Introduzca el c�digo de venta: ");
-                    codigoVenta = sc.nextLine();
-                    MongoDB.modificarVueloComprado(mongo, codVuelo, dniActual,dniPagador, codigoVenta);
-
 					break;
 				case 4:
 					salir = true;
